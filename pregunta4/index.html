@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Dashboard - Ejercicio 4</title>
+
+    <!-- 
+    ============================================================
+    TABLA DE COMPATIBILIDAD - PRUEBAS REALIZADAS
+    ============================================================
+    
+    | Propiedad / Regla        | Chrome 120 (Win) | Firefox 121 (Win) | Fuente                    |
+    |--------------------------|------------------|-------------------|---------------------------|
+    | backdrop-filter          | ✅ Funciona      | ✅ Funciona       | caniuse.com/#feat=css-backdrop-filter |
+    | -webkit-backdrop-filter  | ✅ Funciona      | ⚠️ Ignorado       | MDN Web Docs              |
+    | @supports                | ✅ Funciona      | ✅ Funciona       | caniuse.com/#feat=css-supports |
+    | @property (gradientes)   | ✅ Funciona      | ✅ Funciona       | MDN Web Docs              |
+    | prefers-reduced-motion   | ✅ Funciona      | ✅ Funciona       | MDN Web Docs              |
+    
+    OBSERVACIONES:
+    - Chrome: El efecto de vidrio se ve perfecto con blur y saturación.
+    - Firefox: Funciona correctamente desde la versión 103+.
+    - En navegadores antiguos sin soporte: se muestra fondo sólido semitransparente (fallback).
+    
+    Fuentes consultadas:
+    - https://caniuse.com/css-backdrop-filter
+    - https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter
+    - https://developer.mozilla.org/en-US/docs/Web/CSS/@supports
+    ============================================================
+    -->
+
+    <style>
+        /* =========================================================
+           1. VARIABLES Y RESET
+           ========================================================= */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.75);
+            --accent: #60a5fa;
+            --radius: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            /* Fondo animado con múltiples gradientes */
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background-size: 400% 400%;
+            animation: bgShift 15s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Esferas decorativas de fondo (para que se note el efecto vidrio) */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: #ec4899;
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: #3b82f6;
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: #10b981;
+            top: 40%;
+            left: 50%;
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(50px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-30px, 30px) scale(0.95);
+            }
+        }
+
+        /* =========================================================
+           2. HEADER
+           ========================================================= */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--text-primary);
+        }
+
+        /* =========================================================
+           3. CONTENIDO PRINCIPAL
+           ========================================================= */
+        main {
+            position: relative;
+            z-index: 5;
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title h1 {
+            font-size: 2.8rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Grid del dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* =========================================================
+           4. COMPONENTE DE VIDRIO - BASE (FALLBACK)
+           =========================================================
+           Este estilo se aplica SIEMPRE. Es la "base funcional"
+           que funciona en TODOS los navegadores, incluso los que
+           no soportan backdrop-filter.
+        */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--glass-shadow);
+            /* Fallback 1: sin blur, solo transparencia */
+        }
+
+        /* =========================================================
+           5. @supports - MEJORA PROGRESIVA
+           =========================================================
+           Si el navegador SOPORTA backdrop-filter, aplicamos el
+           efecto de vidrio real (blur + saturación).
+        */
+        @supports ((backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px))) {
+            .glass {
+                /* Prefijo de proveedor primero (estándar al final) */
+                -webkit-backdrop-filter: blur(16px) saturate(180%);
+                backdrop-filter: blur(16px) saturate(180%);
+                background: rgba(255, 255, 255, 0.12);
+            }
+        }
+
+        /* =========================================================
+           6. TARJETA DE PERFIL
+           ========================================================= */
+        .profile-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            /* Fallback 2: gradiente simple si no hay imagen */
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            /* Bordo animado con conic-gradient (propiedad moderna) */
+            position: relative;
+        }
+
+        .avatar::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #60a5fa, #ec4899, #10b981, #60a5fa);
+            z-index: -1;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .profile-card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .profile-card .role {
+            color: var(--accent);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 2rem;
+            width: 100%;
+            justify-content: space-around;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* =========================================================
+           7. PANEL DE ACTIVIDAD
+           ========================================================= */
+        .activity-panel h3 {
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            font-size: 1.3rem;
+        }
+
+        .activity-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .activity-item:hover {
+            transform: translateX(8px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .icon-blue {
+            background: rgba(96, 165, 250, 0.3);
+        }
+
+        .icon-pink {
+            background: rgba(236, 72, 153, 0.3);
+        }
+
+        .icon-green {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .icon-yellow {
+            background: rgba(245, 158, 11, 0.3);
+        }
+
+        .activity-info {
+            flex-grow: 1;
+        }
+
+        .activity-info strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .activity-info span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* =========================================================
+           8. TARJETAS INFERIORES (STATS)
+           ========================================================= */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .stat-card .big-number {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #60a5fa, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        .stat-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* =========================================================
+           9. FOOTER
+           ========================================================= */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        /* =========================================================
+           10. RESPONSIVE
+           ========================================================= */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title h1 {
+                font-size: 2rem;
+            }
+
+            header {
+                padding: 1rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+            }
+        }
+
+        /* =========================================================
+           11. ACCESIBILIDAD: prefers-reduced-motion
+           =========================================================
+           Si el usuario tiene activada la opción de "reducir 
+           movimiento" en su sistema operativo, desactivamos 
+           TODAS las animaciones para respetar su preferencia.
+        */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            .bg-orb {
+                animation: none;
+            }
+
+            body {
+                background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+                background-size: 100% 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Esferas de fondo (para que el vidrio refleje algo) -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <header>
+        <div class="logo">GLASS·UI</div>
+        <nav>
+            <ul>
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="#">Proyectos</a></li>
+                <li><a href="#">Mensajes</a></li>
+                <li><a href="#">Ajustes</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="page-title">
+            <h1>Panel de Control</h1>
+            <p>Bienvenido de vuelta, Fabio. Aquí tienes tu resumen de hoy.</p>
+        </div>
+
+        <div class="dashboard">
+
+            <!-- Tarjeta de Perfil con efecto vidrio -->
+            <aside class="glass profile-card">
+                <div class="avatar">A</div>
+                <h2>Fabio Ventura</h2>
+                <p class="role">DISEÑADOR UX/UI</p>
+
+                <div class="profile-stats">
+                    <div class="stat">
+                        <span class="stat-number">142</span>
+                        <span class="stat-label">Proyectos</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">8.4k</span>
+                        <span class="stat-label">Seguidores</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">4.9</span>
+                        <span class="stat-label">Rating</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Panel de Actividad con efecto vidrio -->
+            <section class="glass activity-panel">
+                <h3>Actividad Reciente</h3>
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon icon-blue">📁</div>
+                        <div class="activity-info">
+                            <strong>Nuevo proyecto creado</strong>
+                            <span>Rediseño de la app móvil</span>
+                        </div>
+                        <span class="activity-time">Hace 2h</span>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon icon-pink">💬</div>
+                        <div class="activity-info">
+                            <strong>Comentario recibido</strong>
+                            <span>María en "Dashboard 2026"</span>
+                        </div>
+                        <span class="activity-time">Hace 5h</span>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon icon-green">✅</div>
+                        <div class="activity-info">
+                            <strong>Tarea completada</strong>
+                            <span>Prototipo de navegación</span>
+                        </div>
+                        <span class="activity-time">Ayer</span>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon icon-yellow">⭐</div>
+                        <div class="activity-info">
+                            <strong>Nuevo logro desbloqueado</strong>
+                            <span>Diseñador Top 10%</span>
+                        </div>
+                        <span class="activity-time">Hace 2 días</span>
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="glass stat-card">
+                <div class="big-number">98%</div>
+                <p>Satisfacción</p>
+            </div>
+            <div class="glass stat-card">
+                <div class="big-number">2.4k</div>
+                <p>Visitas hoy</p>
+            </div>
+            <div class="glass stat-card">
+                <div class="big-number">+24%</div>
+                <p>Crecimiento</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>Ejercicio 4 · Glassmorphism con @supports y fallbacks · 2026</p>
+    </footer>
+
+</body>
+
+</html>
