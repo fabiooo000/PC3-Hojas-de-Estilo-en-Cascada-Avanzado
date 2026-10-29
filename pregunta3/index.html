@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paisaje Animado - Ejercicio 3</title>
+    <style>
+        /* --- Reset y Base --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), transparent);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 1;
+        }
+
+        /* --- Escenario del Paisaje --- */
+        .landscape {
+            position: relative;
+            width: 100%;
+            height: 85vh;
+            overflow: hidden;
+            /* Cielo con animación de gradiente (amanecer -> día -> atardecer) */
+            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 40%, #f59e0b 75%, #ef4444 100%);
+            background-size: 100% 400%;
+            animation: skyCycle 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes skyCycle {
+            0% {
+                background-position: 0% 0%;
+            }
+
+            /* Noche/Amanecer */
+            50% {
+                background-position: 0% 50%;
+            }
+
+            /* Día */
+            100% {
+                background-position: 0% 100%;
+            }
+
+            /* Atardecer */
+        }
+
+        /* --- Sol --- */
+        .sun {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #fef3c7 0%, #fbbf24 70%, #f59e0b 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px #fbbf24, 0 0 120px rgba(251, 191, 36, 0.5);
+            /* Movimiento en arco */
+            animation: sunMove 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes sunMove {
+            0% {
+                bottom: 10%;
+                left: 10%;
+            }
+
+            50% {
+                bottom: 70%;
+                left: 50%;
+                transform: translate(-50%, 0);
+            }
+
+            100% {
+                bottom: 10%;
+                right: 10%;
+                left: auto;
+            }
+        }
+
+        /* --- Estrellas (aparecen en los extremos del ciclo) --- */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 60%;
+            top: 0;
+            animation: starsFade 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes starsFade {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            30%,
+            70% {
+                opacity: 0;
+            }
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            from {
+                opacity: 0.2;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        /* --- Nubes --- */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.9;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .cloud-1 {
+            width: 120px;
+            height: 40px;
+            top: 20%;
+            animation: cloudDrift 35s linear infinite;
+        }
+
+        .cloud-1::before {
+            width: 60px;
+            height: 60px;
+            top: -30px;
+            left: 20px;
+        }
+
+        .cloud-1::after {
+            width: 50px;
+            height: 50px;
+            top: -20px;
+            left: 60px;
+        }
+
+        .cloud-2 {
+            width: 160px;
+            height: 50px;
+            top: 35%;
+            animation: cloudDrift 50s linear infinite;
+            animation-delay: -15s;
+        }
+
+        .cloud-2::before {
+            width: 80px;
+            height: 80px;
+            top: -40px;
+            left: 30px;
+        }
+
+        .cloud-2::after {
+            width: 60px;
+            height: 60px;
+            top: -25px;
+            left: 80px;
+        }
+
+        .cloud-3 {
+            width: 100px;
+            height: 35px;
+            top: 15%;
+            animation: cloudDrift 40s linear infinite;
+            animation-delay: -25s;
+        }
+
+        .cloud-3::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 15px;
+        }
+
+        .cloud-3::after {
+            width: 40px;
+            height: 40px;
+            top: -15px;
+            left: 50px;
+        }
+
+        @keyframes cloudDrift {
+            from {
+                left: -200px;
+            }
+
+            to {
+                left: 110%;
+            }
+        }
+
+        /* --- Pájaros --- */
+        .bird {
+            position: absolute;
+            width: 20px;
+            height: 10px;
+        }
+
+        .bird::before,
+        .bird::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 3px;
+            background: #1e293b;
+            border-radius: 50%;
+            top: 50%;
+            animation: flap 0.6s ease-in-out infinite alternate;
+        }
+
+        .bird::before {
+            left: 0;
+            transform-origin: right center;
+            transform: rotate(-20deg);
+        }
+
+        .bird::after {
+            right: 0;
+            transform-origin: left center;
+            transform: rotate(20deg);
+        }
+
+        @keyframes flap {
+            from {
+                transform: rotate(-30deg);
+            }
+
+            to {
+                transform: rotate(30deg);
+            }
+        }
+
+        .bird-1 {
+            top: 25%;
+            animation: birdFly 18s linear infinite;
+        }
+
+        .bird-2 {
+            top: 30%;
+            animation: birdFly 22s linear infinite;
+            animation-delay: -5s;
+        }
+
+        .bird-3 {
+            top: 22%;
+            animation: birdFly 25s linear infinite;
+            animation-delay: -10s;
+        }
+
+        @keyframes birdFly {
+            from {
+                left: -50px;
+            }
+
+            to {
+                left: 110%;
+            }
+        }
+
+        /* --- Montañas (capas con parallax) --- */
+        .mountains {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50%;
+        }
+
+        .mountain {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mountain-back {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            clip-path: polygon(0% 100%, 0% 60%, 15% 30%, 30% 50%, 45% 20%, 60% 45%, 75% 25%, 90% 40%, 100% 35%, 100% 100%);
+            animation: mountainSway 8s ease-in-out infinite alternate;
+        }
+
+        .mountain-mid {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            clip-path: polygon(0% 100%, 0% 70%, 10% 50%, 25% 65%, 40% 35%, 55% 55%, 70% 30%, 85% 50%, 100% 45%, 100% 100%);
+            animation: mountainSway 6s ease-in-out infinite alternate-reverse;
+        }
+
+        .mountain-front {
+            background: linear-gradient(135deg, #020617 0%, #000 100%);
+            clip-path: polygon(0% 100%, 0% 80%, 20% 60%, 35% 75%, 50% 55%, 65% 70%, 80% 50%, 100% 65%, 100% 100%);
+        }
+
+        @keyframes mountainSway {
+            from {
+                transform: translateX(-10px);
+            }
+
+            to {
+                transform: translateX(10px);
+            }
+        }
+
+        /* --- Lago con reflejo --- */
+        .lake {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 15%;
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.6) 0%, rgba(15, 23, 42, 0.9) 100%);
+            overflow: hidden;
+        }
+
+        .lake::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg,
+                    transparent 0px,
+                    rgba(255, 255, 255, 0.1) 2px,
+                    transparent 4px,
+                    transparent 20px);
+            animation: waterRipple 4s linear infinite;
+        }
+
+        @keyframes waterRipple {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* --- Texto sobre el paisaje --- */
+        .landscape-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 5;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .landscape-text h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            letter-spacing: 8px;
+            margin-bottom: 1rem;
+            animation: textFade 4s ease-in-out infinite alternate;
+        }
+
+        .landscape-text p {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            opacity: 0.9;
+        }
+
+        @keyframes textFade {
+            from {
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 2rem;
+            text-align: center;
+            background: #020617;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .landscape-text h1 {
+                font-size: 2.5rem;
+                letter-spacing: 4px;
+            }
+
+            .sun {
+                width: 70px;
+                height: 70px;
+            }
+
+            header {
+                padding: 1rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">NATURA</div>
+        <nav>
+            <ul>
+                <li><a href="#">Inicio</a></li>
+                <li><a href="#">Galería</a></li>
+                <li><a href="#">Acerca de</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="landscape">
+
+        <!-- Estrellas -->
+        <div class="stars">
+            <div class="star" style="top:10%; left:15%; animation-delay:0s;"></div>
+            <div class="star" style="top:20%; left:30%; animation-delay:0.5s;"></div>
+            <div class="star" style="top:8%;  left:50%; animation-delay:1s;"></div>
+            <div class="star" style="top:25%; left:70%; animation-delay:1.5s;"></div>
+            <div class="star" style="top:15%; left:85%; animation-delay:0.3s;"></div>
+            <div class="star" style="top:30%; left:10%; animation-delay:0.8s;"></div>
+            <div class="star" style="top:5%;  left:40%; animation-delay:1.2s;"></div>
+            <div class="star" style="top:18%; left:60%; animation-delay:0.6s;"></div>
+        </div>
+
+        <!-- Sol -->
+        <div class="sun"></div>
+
+        <!-- Nubes -->
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+
+        <!-- Pájaros -->
+        <div class="bird bird-1"></div>
+        <div class="bird bird-2"></div>
+        <div class="bird bird-3"></div>
+
+        <!-- Montañas -->
+        <div class="mountains">
+            <div class="mountain mountain-back"></div>
+            <div class="mountain mountain-mid"></div>
+            <div class="mountain mountain-front"></div>
+        </div>
+
+        <!-- Lago -->
+        <div class="lake"></div>
+
+        <!-- Texto central -->
+        <div class="landscape-text">
+            <h1>SERENIDAD</h1>
+            <p>Donde la naturaleza cobra vida</p>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>Ejercicio 3 · Animaciones CSS con @keyframes · 2026</p>
+    </footer>
+
+</body>
+
+</html>
